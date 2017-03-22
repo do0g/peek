@@ -10,7 +10,7 @@
     "test:watch": "nodemon --watch src/ --watch test/ -L --exec npm run test",
     "posttest": "npm run lint",
     "prepublish": "not-in-install && npm run build || in-install # NPM insanely runs prepublish on npm install: https://github.com/npm/npm/issues/3059",
-    "lint": "eslint --fix 'src/**/*.js' 'test/**/*.js'",
+    "lint": "eslint 'src/**/*.js' 'test/**/*.js'",
     "no-npm": "no-npm"
   },
   "files": [
