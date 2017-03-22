@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  peek:
+    container_name: peek
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    environment:
+      - GIT_AUTHOR_NAME
+      - GIT_AUTHOR_EMAIL
+    volumes:
+      - ${PWD}:/app
+      - ${GITHUB_SSH_KEY}:/root/.ssh/id_rsa:ro
+    entrypoint:
+      - /scripts/peek

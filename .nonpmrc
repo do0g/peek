@@ -1,0 +1,4 @@
+{ 
+  "repo": "ssh://git@github.com/do0g/peek.git",
+  "pre-release": "pre"
+}

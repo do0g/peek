@@ -1,0 +1,34 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+    }
+  },
+  "extends": "eslint:recommended",
+  "env": {
+    "browser": false,
+    "node": true,
+    "es6": true,
+    "mocha": true
+  },
+  "plugins": [
+    "chai-expect",
+    "mocha"
+  ],
+  "rules": {
+    "chai-expect/missing-assertion": 2,
+    "semi": "error",
+    "quotes": ["error", "single", { avoidEscape: true  }],
+    "no-unused-expressions": "off",
+    "mocha/no-exclusive-tests": "error"
+  },
+  "globals": {
+    "expect": true,
+    "sandbox": true,
+    "sinon": true,
+    "sinonAsPromised": true,
+    "stub": true,
+    "spy": true
+  }
+}
