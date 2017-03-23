@@ -8,7 +8,8 @@ const swapProp = curry((obj, prop, swapWithThis, thenFn) => {
   obj[prop] = swapWithThis;
   try {
     thenFn();
-  } catch (err) { // eslint-disable-line no-empty
+  } catch (err) {
+    throw err;
   } finally {
     obj[prop] = wasFn;
   }
@@ -31,9 +32,7 @@ describe('peek', () => {
 
   it('flips out', () => {
     const throwsFoo = peek(() => { throw new Error('foo'); }, 'throwsFoo');
-    try {
-      suppressConsoleLog(() => throwsFoo());
-    } catch (err) {} // eslint-disable-line no-empty
+    expect(() => suppressConsoleLog(() => throwsFoo())).to.throw(Error);
     expect(consoleLogSpy).to.have.been.calledWith('throwsFoo()');
     expect(consoleLogSpy).to.have.been.calledWith(' (ノಠ益ಠ)ノ彡Error: foo');
   });
