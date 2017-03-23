@@ -1,6 +1,6 @@
 {
   "name": "peek",
-  "version": "0.0.2-pre.0",
+  "version": "0.0.2",
   "description": "Want to know what your function is doing?",
   "main": "dist/peek.js",
   "scripts": {
