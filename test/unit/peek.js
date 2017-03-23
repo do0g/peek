@@ -1,22 +1,52 @@
 import peek from '../../src/peek';
-import { identity } from 'ramda';
+import { identity, curry } from 'ramda';
 
 /* eslint-disable no-console */
 
-describe('peek', () => {
-  beforeEach(() => {
-    spy(console, 'log');
-  });
+const swapProp = curry((obj, prop, swapWithThis, thenFn) => {
+  const wasFn = obj[prop];
+  obj[prop] = swapWithThis;
+  try {
+    thenFn();
+  } catch (err) { // eslint-disable-line no-empty
+  } finally {
+    obj[prop] = wasFn;
+  }
+});
 
-  afterEach(() => {
-    console.log.restore();
+describe('peek', () => {
+  let consoleLogSpy;
+  let suppressConsoleLog;
+  beforeEach(() => {
+    consoleLogSpy = spy();
+    suppressConsoleLog = swapProp(console, 'log', consoleLogSpy);
   });
 
   it('reveals a function\'s secrets', () => {
     const _identity = peek(identity, 'identity');
-    _identity(1, 2, 3);
-    expect(console.log).to.have.been.calledWith('identity(1, 2, 3)');
-    expect(console.log).to.have.been.calledWith(' -> 1');
+    suppressConsoleLog(() => _identity(1, 2, 3));
+    expect(consoleLogSpy).to.have.been.calledWith('identity(1, 2, 3)');
+    expect(consoleLogSpy).to.have.been.calledWith(' -> 1');
   });
 
+  it('flips out', () => {
+    const throwsFoo = peek(() => { throw new Error('foo'); }, 'throwsFoo');
+    try {
+      suppressConsoleLog(() => throwsFoo());
+    } catch (err) {} // eslint-disable-line no-empty
+    expect(consoleLogSpy).to.have.been.calledWith('throwsFoo()');
+    expect(consoleLogSpy).to.have.been.calledWith(' (ノಠ益ಠ)ノ彡Error: foo');
+  });
+
+  it('is magic with curry', () => {
+    const add = peek(lhs => rhs => lhs + rhs, 'add');
+    suppressConsoleLog(() => {
+      const addOne = add(1);
+      addOne(2);
+    });
+    expect(consoleLogSpy).to.have.been.calledWith('add(1)');
+    expect(consoleLogSpy).to.have.been.calledWith(' -> add(1)');
+    expect(consoleLogSpy).to.have.been.calledWith('add(1)(2)');
+    expect(consoleLogSpy).to.have.been.calledWith(' -> 3');
+  });
 });
