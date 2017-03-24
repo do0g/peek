@@ -37,7 +37,7 @@ describe('peek', () => {
     expect(consoleLogSpy).to.have.been.calledWith(' (ノಠ益ಠ)ノ彡Error: foo');
   });
 
-  it('is magic with curry', () => {
+  it('is tasty with curry', () => {
     const add = peek(lhs => rhs => lhs + rhs, 'add');
     suppressConsoleLog(() => {
       const addOne = add(1);
