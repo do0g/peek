@@ -1,5 +1,5 @@
-import peek from '../../src/peek';
-import { identity, curry } from 'ramda';
+import peek, {tweak} from '../../src/peek';
+import { is, identity, curry } from 'ramda';
 
 /* eslint-disable no-console */
 
@@ -47,5 +47,15 @@ describe('peek', () => {
     expect(consoleLogSpy).to.have.been.calledWith(' -> add(1)');
     expect(consoleLogSpy).to.have.been.calledWith('add(1)(2)');
     expect(consoleLogSpy).to.have.been.calledWith(' -> 3');
+  });
+
+  it('can override serialisation', () => {
+    const strinigfyPeek = tweak({
+      serialisers: [[is(Object), JSON.stringify.bind(JSON)]]
+    });
+    const _identity = strinigfyPeek(identity, 'identity');
+    suppressConsoleLog(() => _identity({ foo: 'bar' }));
+    expect(consoleLogSpy).to.have.been.calledWith('identity({"foo":"bar"})');
+    expect(consoleLogSpy).to.have.been.calledWith(' -> {"foo":"bar"}');
   });
 });
