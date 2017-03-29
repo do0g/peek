@@ -11,8 +11,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var tweak = function tweak() {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var _options$serialisers = options.serialisers,
-      serialisers = _options$serialisers === undefined ? [] : _options$serialisers;
+  var _options$formatters = options.formatters,
+      formatters = _options$formatters === undefined ? [] : _options$formatters;
 
   var functionNames = new Map();
   var _setFunctionName = (0, _ramda.curry)(function (fn, name) {
@@ -43,7 +43,7 @@ var tweak = function tweak() {
   var getFunctionName = first([_getFunctionName, (0, _ramda.prop)('name'), (0, _ramda.always)('anonymous')], notNilOrEmpty);
 
   //const logVal = f => tap(v => console.log(`${f}${typeOf(v)} ${v}`));
-  var formatArg = (0, _ramda.cond)((0, _ramda.concat)(serialisers, [[(0, _ramda.is)(Function), (0, _ramda.pipe)(getFunctionName, function (name) {
+  var formatArg = (0, _ramda.cond)((0, _ramda.concat)(formatters, [[(0, _ramda.is)(Function), (0, _ramda.pipe)(getFunctionName, function (name) {
     return '' + name;
   })], [(0, _ramda.is)(Array), (0, _ramda.pipe)((0, _ramda.map)(function (v) {
     return formatArg(v);
