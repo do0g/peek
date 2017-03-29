@@ -1,7 +1,7 @@
 import { concat, flip, when, join, is, always, curry, anyPass, isNil, complement, prop, isEmpty, head, tail, cond, pipe, map, identity, T } from 'ramda';
 
 const tweak = (options = {}) => {
-  const { serialisers = [] } = options;
+  const { formatters = [] } = options;
   const functionNames = new Map();
   const _setFunctionName = curry((fn, name) => {
     functionNames.set(fn, name);
@@ -33,7 +33,7 @@ const tweak = (options = {}) => {
   ], notNilOrEmpty);
 
   //const logVal = f => tap(v => console.log(`${f}${typeOf(v)} ${v}`));
-  const formatArg = cond(concat(serialisers, [
+  const formatArg = cond(concat(formatters, [
     [is(Function), pipe(getFunctionName, name => `${name}`)],
     [is(Array), pipe(map(v => formatArg(v)), vals => `[${join(', ', vals)}]`)],
     [anyPass([isNil, is(Object)]), typeOf],

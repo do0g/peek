@@ -49,9 +49,9 @@ describe('peek', () => {
     expect(consoleLogSpy).to.have.been.calledWith(' -> 3');
   });
 
-  it('can override serialisation', () => {
+  it('can override formatters', () => {
     const strinigfyPeek = tweak({
-      serialisers: [[is(Object), JSON.stringify.bind(JSON)]]
+      formatters: [[is(Object), JSON.stringify.bind(JSON)]]
     });
     const _identity = strinigfyPeek(identity, 'identity');
     suppressConsoleLog(() => _identity({ foo: 'bar' }));
