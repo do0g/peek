@@ -1,5 +1,6 @@
+import { subtract as _subtract, __, is, identity, curry } from 'ramda';
+
 import peek, {tweak} from '../../src/peek';
-import { is, identity, curry } from 'ramda';
 
 /* eslint-disable no-console */
 
@@ -47,6 +48,22 @@ describe('peek', () => {
     expect(consoleLogSpy).to.have.been.calledWith(' -> add(1)');
     expect(consoleLogSpy).to.have.been.calledWith('add(1)(2)');
     expect(consoleLogSpy).to.have.been.calledWith(' -> 3');
+  });
+
+  it('freaks out if you don\'t pass it a function', () => {
+    expect(() => peek(undefined, 'ohnoes')).to.throw(Error, 'What choo talkin\' \'bout, Willis?');
+  });
+
+  it('supports ramda placeholders', () => {
+    const subtract = peek(_subtract, 'subtract');
+    suppressConsoleLog(() => {
+      const subtractOne = subtract(__, 1);
+      subtractOne(2);
+    });
+    expect(consoleLogSpy).to.have.been.calledWith('subtract(__, 1)');
+    expect(consoleLogSpy).to.have.been.calledWith(' -> subtract(__, 1)');
+    expect(consoleLogSpy).to.have.been.calledWith('subtract(__, 1)(2)');
+    expect(consoleLogSpy).to.have.been.calledWith(' -> 1');
   });
 
   it('can override formatters', () => {
