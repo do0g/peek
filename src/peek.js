@@ -12,13 +12,13 @@ const identity = id => id;
 
 const tweak = (options = {}) => {
   const { formatters = [] } = options;
-  const tappedFunctions = [];
-  const _tap = curry(fn => {
-    tappedFunctions.push(fn);
+  const peekedFunctions = [];
+  const registerPeeked = curry(fn => {
+    peekedFunctions.push(fn);
     return fn;
   });
 
-  const _isTapped = fn => tappedFunctions.indexOf(fn) !== -1;
+  const _isPeeked = fn => peekedFunctions.indexOf(fn) !== -1;
 
   const functionNames = new Map();
   const _setFunctionName = curry((fn, name) => {
@@ -76,7 +76,7 @@ const tweak = (options = {}) => {
     if (typeOf(fn) !== 'function') {
       throw new Error('What choo talkin\' \'bout, Willis?');
     }
-    if (_isTapped(fn)) {
+    if (_isPeeked(fn)) {
       return fn;
     }
     if (name) {
@@ -86,12 +86,12 @@ const tweak = (options = {}) => {
     const f = (...args) => {
       try {
         indent += 2;
-        const tappedArgs = maybePeek(args);
-        //console.log(`tappedArgs: ${JSON.stringify(tappedArgs)}`);
+        const peekedArgs = maybePeek(args);
+        //console.log(`peekedArgs: ${JSON.stringify(peekedArgs)}`);
         const formattedFunction = formatFunction(fn, args);
         log(' '.repeat(indent) + formattedFunction);
-        const result = fn.apply(fn, tappedArgs);
-        //const result = fn(...tappedArgs);
+        const result = fn.apply(fn, peekedArgs);
+        //const result = fn(...peekedArgs);
         //console.log(`result: ${result}`);
         const maybePeeked = maybePeek(maybeName(formattedFunction, result));
         log(`${' '.repeat(indent)} -> ${formatArg(maybePeeked)}`);
@@ -104,7 +104,7 @@ const tweak = (options = {}) => {
       }
     };
     _setFunctionName(f, _getFunctionName(fn));
-    _tap(f);
+    registerPeeked(f);
     return f;
   };
   return peek;
