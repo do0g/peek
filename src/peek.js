@@ -1,6 +1,12 @@
 import { concat, join, is, always, curry, anyPass, isNil, complement, prop, isEmpty, head, tail, cond, pipe, map, T } from 'ramda';
 
-const isFunction = fn => typeof fn === 'function';
+const typeOf = obj => (
+  {}.toString.call(obj)
+    .split(' ')[1]
+    .slice(0, -1)
+    .toLowerCase()
+);
+const isFunction = fn => typeOf(fn) === 'function';
 const isPlaceHolder = fn => !!fn['@@functional/placeholder'];
 const identity = id => id;
 
@@ -23,12 +29,6 @@ const tweak = (options = {}) => {
   const _getFunctionName = fn => functionNames.get(fn);
 
   const isNilOrEmpty = anyPass([isNil, isEmpty]);
-  const typeOf = obj => (
-    {}.toString.call(obj)
-      .split(' ')[1]
-      .slice(0, -1)
-      .toLowerCase()
-  );
   const notNilOrEmpty = complement(isNilOrEmpty);
 
   const first = (list, pred = notNilOrEmpty) => (...args) => {
@@ -69,11 +69,11 @@ const tweak = (options = {}) => {
     [T, identity]
   ]);
 
-  const maybeName = (name, maybeFn) => typeof maybeFn === 'function' ? _setFunctionName(maybeFn, name) : maybeFn;
+  const maybeName = (name, maybeFn) => typeOf(maybeFn) === 'function' ? _setFunctionName(maybeFn, name) : maybeFn;
 
   let indent = -2;
   const peek = (fn, name) => {
-    if (typeof fn !== 'function') {
+    if (typeOf(fn) !== 'function') {
       throw new Error('What choo talkin\' \'bout, Willis?');
     }
     if (_isTapped(fn)) {
