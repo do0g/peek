@@ -1,7 +1,8 @@
-import { concat, join, is, always, curry, anyPass, isNil, complement, prop, isEmpty, head, tail, cond, pipe, map, identity, T } from 'ramda';
+import { concat, join, is, always, curry, anyPass, isNil, complement, prop, isEmpty, head, tail, cond, pipe, map, T } from 'ramda';
 
 const isFunction = fn => typeof fn === 'function';
 const isPlaceHolder = fn => !!fn['@@functional/placeholder'];
+const identity = id => id;
 
 const tweak = (options = {}) => {
   const { formatters = [] } = options;
@@ -38,21 +39,22 @@ const tweak = (options = {}) => {
   };
 
   const getFunctionName = first([
-    fn => isPlaceHolder(fn) ? '__' : undefined,
     _getFunctionName,
     prop('name'),
     always('anonymous')
   ], notNilOrEmpty);
 
-  //const logVal = f => tap(v => console.log(`${f}${typeOf(v)} ${v}`));
-  const formatArg = cond(concat(formatters, [
-    [isPlaceHolder, always('__')],
-    [isFunction, pipe(getFunctionName, name => `${name}`)],
-    [is(Array), pipe(map(v => formatArg(v)), vals => `[${join(', ', vals)}]`)],
+  const defaultFormatters = [
+    [isPlaceHolder, () => '__'],
+    [isFunction, getFunctionName],
+    [is(Array), pipe(map(formatArg), vals => `[${join(', ', vals)}]`)],
     [anyPass([isNil, is(Object)]), typeOf],
     [is(String), val => `'${val}'`],
     [T, identity]
-  ]));
+  ];
+
+  //const logVal = f => tap(v => console.log(`${f}${typeOf(v)} ${v}`));
+  const formatArg = cond(concat(formatters, defaultFormatters));
   const formatReturnValue = val => val ? `${formatArg(val)}` : '';
   const formatFunction = (fn, args, result) => `${getFunctionName(fn)}(${pipe(map(formatArg), join(', '))(args)})${formatReturnValue(result)}`;
 
@@ -60,21 +62,10 @@ const tweak = (options = {}) => {
   const log = (...args) => console.log(...args); // eslint-disable-line no-console
   //const error = (...args) => console.error(...args); // eslint-disable-line no-console
 
-  // for some reason map is dropping placeholders from the argument list,
-  // so this ensures they're preserved
-  const mapUnless = (unlessFn, fn, list) => {
-    var length = list.length;
-    var results = [];
-    for (var idx = 0; idx < length; idx++) {
-      results[idx] = unlessFn(list[idx]) ? list[idx] : fn(list[idx]);
-    }
-    return results;
-  };
-
   const maybePeek = cond([
     [isPlaceHolder, identity],
     [isFunction, fn => peek(fn)],
-    [is(Array), list => mapUnless(isPlaceHolder, maybePeek, list)],
+    [is(Array), list => map(maybePeek, list)],
     [T, identity]
   ]);
 
