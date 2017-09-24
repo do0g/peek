@@ -7,11 +7,17 @@ exports.tweak = undefined;
 
 var _ramda = require('ramda');
 
+var typeOf = function typeOf(obj) {
+  return {}.toString.call(obj).split(' ')[1].slice(0, -1).toLowerCase();
+};
 var isFunction = function isFunction(fn) {
-  return typeof fn === 'function';
+  return typeOf(fn) === 'function';
 };
 var isPlaceHolder = function isPlaceHolder(fn) {
   return !!fn['@@functional/placeholder'];
+};
+var identity = function identity(id) {
+  return id;
 };
 
 var tweak = function tweak() {
@@ -19,14 +25,14 @@ var tweak = function tweak() {
   var _options$formatters = options.formatters,
       formatters = _options$formatters === undefined ? [] : _options$formatters;
 
-  var tappedFunctions = [];
-  var _tap = (0, _ramda.curry)(function (fn) {
-    tappedFunctions.push(fn);
+  var peekedFunctions = [];
+  var registerPeeked = (0, _ramda.curry)(function (fn) {
+    peekedFunctions.push(fn);
     return fn;
   });
 
-  var _isTapped = function _isTapped(fn) {
-    return tappedFunctions.indexOf(fn) !== -1;
+  var _isPeeked = function _isPeeked(fn) {
+    return peekedFunctions.indexOf(fn) !== -1;
   };
 
   var functionNames = new Map();
@@ -40,9 +46,6 @@ var tweak = function tweak() {
   };
 
   var isNilOrEmpty = (0, _ramda.anyPass)([_ramda.isNil, _ramda.isEmpty]);
-  var typeOf = function typeOf(obj) {
-    return {}.toString.call(obj).split(' ')[1].slice(0, -1).toLowerCase();
-  };
   var notNilOrEmpty = (0, _ramda.complement)(isNilOrEmpty);
 
   var first = function first(list) {
@@ -55,20 +58,18 @@ var tweak = function tweak() {
     };
   };
 
-  var getFunctionName = first([function (fn) {
-    return isPlaceHolder(fn) ? '__' : undefined;
-  }, _getFunctionName, (0, _ramda.prop)('name'), (0, _ramda.always)('anonymous')], notNilOrEmpty);
+  var getFunctionName = first([_getFunctionName, (0, _ramda.prop)('name'), (0, _ramda.always)('anonymous')], notNilOrEmpty);
 
-  //const logVal = f => tap(v => console.log(`${f}${typeOf(v)} ${v}`));
-  var formatArg = (0, _ramda.cond)((0, _ramda.concat)(formatters, [[isPlaceHolder, (0, _ramda.always)('__')], [isFunction, (0, _ramda.pipe)(getFunctionName, function (name) {
-    return '' + name;
-  })], [(0, _ramda.is)(Array), (0, _ramda.pipe)((0, _ramda.map)(function (v) {
-    return formatArg(v);
-  }), function (vals) {
+  var defaultFormatters = [[isPlaceHolder, function () {
+    return '__';
+  }], [isFunction, getFunctionName], [(0, _ramda.is)(Array), (0, _ramda.pipe)((0, _ramda.map)(formatArg), function (vals) {
     return '[' + (0, _ramda.join)(', ', vals) + ']';
   })], [(0, _ramda.anyPass)([_ramda.isNil, (0, _ramda.is)(Object)]), typeOf], [(0, _ramda.is)(String), function (val) {
     return '\'' + val + '\'';
-  }], [_ramda.T, _ramda.identity]]));
+  }], [_ramda.T, identity]];
+
+  //const logVal = f => tap(v => console.log(`${f}${typeOf(v)} ${v}`));
+  var formatArg = (0, _ramda.cond)((0, _ramda.concat)(formatters, defaultFormatters));
   var formatReturnValue = function formatReturnValue(val) {
     return val ? '' + formatArg(val) : '';
   };
@@ -84,33 +85,22 @@ var tweak = function tweak() {
   }; // eslint-disable-line no-console
   //const error = (...args) => console.error(...args); // eslint-disable-line no-console
 
-  // for some reason map is dropping placeholders from the argument list,
-  // so this ensures they're preserved
-  var mapUnless = function mapUnless(unlessFn, fn, list) {
-    var length = list.length;
-    var results = [];
-    for (var idx = 0; idx < length; idx++) {
-      results[idx] = unlessFn(list[idx]) ? list[idx] : fn(list[idx]);
-    }
-    return results;
-  };
-
-  var maybePeek = (0, _ramda.cond)([[isPlaceHolder, _ramda.identity], [isFunction, function (fn) {
+  var maybePeek = (0, _ramda.cond)([[isPlaceHolder, identity], [isFunction, function (fn) {
     return peek(fn);
   }], [(0, _ramda.is)(Array), function (list) {
-    return mapUnless(isPlaceHolder, maybePeek, list);
-  }], [_ramda.T, _ramda.identity]]);
+    return (0, _ramda.map)(maybePeek, list);
+  }], [_ramda.T, identity]]);
 
   var maybeName = function maybeName(name, maybeFn) {
-    return typeof maybeFn === 'function' ? _setFunctionName(maybeFn, name) : maybeFn;
+    return typeOf(maybeFn) === 'function' ? _setFunctionName(maybeFn, name) : maybeFn;
   };
 
   var indent = -2;
   var peek = function peek(fn, name) {
-    if (typeof fn !== 'function') {
+    if (typeOf(fn) !== 'function') {
       throw new Error('What choo talkin\' \'bout, Willis?');
     }
-    if (_isTapped(fn)) {
+    if (_isPeeked(fn)) {
       return fn;
     }
     if (name) {
@@ -124,12 +114,12 @@ var tweak = function tweak() {
 
       try {
         indent += 2;
-        var tappedArgs = maybePeek(args);
-        //console.log(`tappedArgs: ${JSON.stringify(tappedArgs)}`);
+        var peekedArgs = maybePeek(args);
+        //console.log(`peekedArgs: ${JSON.stringify(peekedArgs)}`);
         var formattedFunction = formatFunction(fn, args);
         log(' '.repeat(indent) + formattedFunction);
-        var result = fn.apply(fn, tappedArgs);
-        //const result = fn(...tappedArgs);
+        var result = fn.apply(fn, peekedArgs);
+        //const result = fn(...peekedArgs);
         //console.log(`result: ${result}`);
         var maybePeeked = maybePeek(maybeName(formattedFunction, result));
         log(' '.repeat(indent) + ' -> ' + formatArg(maybePeeked));
@@ -142,7 +132,7 @@ var tweak = function tweak() {
       }
     };
     _setFunctionName(f, _getFunctionName(fn));
-    _tap(f);
+    registerPeeked(f);
     return f;
   };
   return peek;
