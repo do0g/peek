@@ -7,7 +7,7 @@ const typeOf = obj => (
     .toLowerCase()
 );
 const isFunction = fn => typeOf(fn) === 'function';
-const isPlaceHolder = fn => !!fn['@@functional/placeholder'];
+const isPlaceHolder = fn => fn && fn['@@functional/placeholder'];
 const identity = id => id;
 
 const tweak = (options = {}) => {
