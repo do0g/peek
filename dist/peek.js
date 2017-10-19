@@ -14,7 +14,7 @@ var isFunction = function isFunction(fn) {
   return typeOf(fn) === 'function';
 };
 var isPlaceHolder = function isPlaceHolder(fn) {
-  return !!fn['@@functional/placeholder'];
+  return fn && fn['@@functional/placeholder'];
 };
 var identity = function identity(id) {
   return id;
